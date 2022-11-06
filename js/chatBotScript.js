@@ -6,7 +6,7 @@ window.myState.AvgMeetingDuration;
 window.myState.currentQueue;
 window.myState.meeting_url;
 
-const BACKEND_HOST= 'https://backoffice-app-aade-acs-pilot.azurewebsites.net/'
+const BACKEND_HOST= 'http://localhost:8090'
 
 const updateChatboxConfiguration= async function () {
   const REQ_URL = `${BACKEND_HOST}/api/get-settings/`;
