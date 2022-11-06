@@ -303,7 +303,7 @@ const BotErrorCreatingMsgHTML= `
 <div dir="ltr" class="ac-container ac-adaptiveCard" style="display: flex; flex-direction: column; justify-content: flex-start; box-sizing: border-box; flex: 0 0 auto; padding: 15px; margin: 0px;">
   <div class="ac-textBlock" style="overflow: hidden; font-family: Calibri,  Helvetica Neue, Arial, sans-serif; font-size: 17px; color: black; font-weight: 600; text-align: start; line-height: 22.61px; white-space: nowrap; text-overflow: ellipsis; box-sizing: border-box; flex: 0 0 auto;">
     <p style="margin-top: 0px; width: 100%; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0px;">
-    Η υπηρεσία Live Communication είναι απενεργοποιημένη αυτή τη στιγμή
+    Το αίτημα σας δεν μπορεί να εξυπηρετηθεί αυτή τη στιγμή
     </p>
   </div>
   <div class="ac-horizontal-separator" aria-hidden="true" style="height: 8px; overflow: hidden; flex: 0 0 auto;">
