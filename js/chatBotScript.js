@@ -4,9 +4,12 @@ window.myState.chatBoxStart;
 window.myState.MaxWaitingQueue;
 window.myState.AvgMeetingDuration;
 window.myState.currentQueue;
-window.myState.meeting_url;
+window.myState.meeting_id;
+window.myState.acs_meeting_url;
+window.myState.reject_reason;
+window.myState.checkMeetingIntervalId;
 
-const BACKEND_HOST= 'https://demosacsgr-backoffice.azurewebsites.net'
+const BACKEND_HOST= 'http://localhost:8090'
 
 const updateChatboxConfiguration= async function () {
   const REQ_URL = `${BACKEND_HOST}/api/get-settings/`;
@@ -84,6 +87,48 @@ const sendMeetingRequest= async function (form_name, form_surname, form_mobile, 
 
 }
 
+const checkMeetingRequestStatus= async function () {
+  const REQ_URL = `${BACKEND_HOST}/api/check-meeting-request/`;
+
+  const REQ_HEADERS = {
+    "Content-Type": "application/json"
+  };
+  
+  const REQ_BODY = JSON.stringify({
+    "meeting_id": window.myState.meeting_id,
+  });
+
+  const res = await fetch(REQ_URL, {
+    method: 'POST',
+    headers: REQ_HEADERS,
+    body: REQ_BODY,
+    redirect: 'follow'
+  });
+
+  if (res.status!= 200){
+    console.error(await res.text());
+    return;
+  } 
+
+  const resJson= await res.json();
+  const status= resJson.status;
+
+  clearInterval(window.myState.checkMeetingIntervalId);
+
+  if (status== 'accepted'){
+    window.myState.acs_meeting_url= resJson.acs_meeting_url;
+    postOpenMeetingMsg();
+    return;
+  }
+
+  if (status== 'rejected'){
+    window.myState.reject_reason= resJson.reject_reason;
+    postRejectMeetingMsg();
+    return;
+  }
+
+}
+
 
 const getTime= function () {
   const d = new Date();
@@ -144,7 +189,12 @@ const postBotErrorCreatingMsg= function () {
 }
 
 const postOpenMeetingMsg= function () {
-  const element= BotOpenMeetingMsgHTML.replace('MEETING_URL_HREF', window.myState.meeting_url);
+  const element= BotOpenMeetingMsgHTML.replace('acs_meeting_url_HREF', window.myState.acs_meeting_url);
+  postMsgFromBot(element);
+}
+
+const postRejectMeetingMsg= function () {
+  const element= BotRejectMeetingMsgHTML.replace('reject_reason', window.myState.reject_reason);
   postMsgFromBot(element);
 }
 
@@ -206,9 +256,10 @@ const postBotWaitTimegMsg= async function () {
 
     const res= await sendMeetingRequest(form_name, form_surname, form_mobile, form_email, form_afm, form_klidarithmos, form_details);
 
-    if (res.meeting_url){
-      window.myState.meeting_url= res.meeting_url;
-      postOpenMeetingMsg();
+    if (res.meeting_id){
+      window.myState.meeting_id= res.meeting_id;
+      postMsgFromBot('Παρακαλώ περιμένετε, το αίτημα σας έχει πάρει σειρά και θα εξυπηρετηθεί το συντομοτερο.')
+      window.myState.checkMeetingIntervalId= setInterval(checkMeetingRequestStatus, 2000);
     } else{
       postBotErrorCreatingMsg();
       return;
@@ -292,9 +343,19 @@ const BotOpenMeetingMsgHTML= `
   </div>
   <div class="ac-horizontal-separator" aria-hidden="true" style="height: 8px; overflow: hidden; flex: 0 0 auto;">
   </div>
-  <a href="MEETING_URL_HREF" target="_blank"> Έναρξη συνάντησης </a>
+  <a href="acs_meeting_url_HREF" target="_blank"> Έναρξη συνάντησης </a>
   <div>
     <div style="margin-top: 0px;"></div>
+  </div>
+</div>
+`;
+
+const BotRejectMeetingMsgHTML= `
+<div dir="ltr" class="ac-container ac-adaptiveCard" style="display: flex; flex-direction: column; justify-content: flex-start; box-sizing: border-box; flex: 0 0 auto; padding: 15px; margin: 0px;">
+  <div class="ac-textBlock" style="overflow: hidden; font-family: Calibri,  Helvetica Neue, Arial, sans-serif; font-size: 17px; color: black; font-weight: 600; text-align: start; line-height: 22.61px; white-space: nowrap; text-overflow: ellipsis; box-sizing: border-box; flex: 0 0 auto;">
+    <p style="margin-top: 0px; width: 100%; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0px;">
+    Το αίτημα για κλήση έχει απορριφθεί.
+    </p>
   </div>
 </div>
 `;
